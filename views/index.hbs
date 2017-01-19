@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/skeleton.css">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <title>CM0645 Internet of Things</title>
+</head>
+
+<body>
+  <div class="container">
+    <h1>CM0645 Internet of Things</h1>
+
+    <!-- Start of row -->
+    <div class="row">
+      <!-- 9 columns to display resource name -->
+      <div class="nine columns">
+        <h3>LED Red</h3>
+      </div>
+      <!-- 3 columns to display toggle button -->
+      <div class="three columns">
+        <label class="switch">
+          <input type="checkbox">
+          <div class="slider round"></div>
+        </label>
+      </div>
+    </div>
+    <!-- End of row -->
+
+    <!-- Start of row -->
+    <div class="row">
+      <!-- 9 columns to display resource name -->
+      <div class="nine columns">
+        <h3>LED Green</h3>
+      </div>
+      <!-- 3 columns to display toggle button -->
+      <div class="three columns">
+        <label class="switch">
+          <input type="checkbox">
+          <div class="slider round"></div>
+        </label>
+      </div>
+    </div>
+    <!-- End of row -->
+
+    <!-- Start of row -->
+    <div class="row">
+      <!-- 9 columns to display resource name -->
+      <div class="nine columns">
+        <h3>LED Blue</h3>
+      </div>
+      <!-- 3 columns to display toggle button -->
+      <div class="three columns">
+        <label class="switch">
+          <input type="checkbox">
+          <div class="slider round"></div>
+        </label>
+      </div>
+    </div>
+    <!-- End of row -->
+
+    <!-- Start of row -->
+    <div class="row">
+      <div class="six columns">
+        <h3>Accelerometer X</h3>
+      </div>
+      <div class="three columns">
+        <h3><span id="acc-x-value">Unknown</span></h3>
+      </div>
+      <div class="three columns">
+        <button id="get-acc-x-value">Update</button>
+      </div>
+    </div>
+    <!-- End of row -->
+  </div>
+
+  <script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
+  <script type="text/javascript" src="js/socket.io.js"></script>
+  <script type="text/javascript">
+    $(function() {
+      var socket = io();
+
+      $('#get-acc-x-value').click(function () {
+        console.log('GET X value');
+        socket.emit('get-acc-x-value');
+      })
+
+      socket.on('acc-x-value', function (data) {
+        $('#acc-x-value').html(data.value);
+        console.log('acc-x-value', data.value);
+      });
+    });
+  </script>
+</body>
+</html>
