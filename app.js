@@ -66,22 +66,37 @@ io.on('connection', function (socket) {
   // Add new client to array of client upon connection
   sockets.push(socket);
 
-  socket.on('get-acc-x-value', function() {
-  mbedConnectorApi.getResourceValue(frdmK64Endpoint, accXResourceURI, function(error, value) {
-    if (error) throw error;
-    socket.emit('acc-x-value', {
-      value: value
+  socket.on('toggle-switch', function(data) {
+    mbedConnectorApi.putResourceValue(frdmK64Endpoint, data.id, data.value, function(error) {
+      if (error) throw error;
     });
   });
-});
 
-  socket.on('disconnect', function() {
-    // Remove this socket from the array when a user closes their browser
-    var index = sockets.indexOf(socket);
-    if (index >= 0) {
-      sockets.splice(index, 1);
-    }
-  })
+  socket.on('get-accelerometer-value', function() {
+    mbedConnectorApi.getResourceValue(frdmK64Endpoint, accXResourceURI, function(error, value) {
+      if (error) throw error;
+      socket.emit('accelerometer-value', {
+        id: 'acc-x-value',
+        value: value
+      });
+    });
+
+    mbedConnectorApi.getResourceValue(frdmK64Endpoint, accYResourceURI, function(error, value) {
+      if (error) throw error;
+      socket.emit('accelerometer-value', {
+        id: 'acc-y-value',
+        value: value
+      });
+    });
+
+    mbedConnectorApi.getResourceValue(frdmK64Endpoint, accZResourceURI, function(error, value) {
+      if (error) throw error;
+      socket.emit('accelerometer-value', {
+        id: 'acc-z-value',
+        value: value
+      });
+    });
+  });
 });
 
 // Notification callback

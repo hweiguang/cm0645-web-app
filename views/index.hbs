@@ -23,7 +23,7 @@
       <!-- 3 columns to display toggle button -->
       <div class="three columns">
         <label class="switch">
-          <input type="checkbox">
+          <input id= "red-toggle-switch" type="checkbox">
           <div class="slider round"></div>
         </label>
       </div>
@@ -39,7 +39,7 @@
       <!-- 3 columns to display toggle button -->
       <div class="three columns">
         <label class="switch">
-          <input type="checkbox">
+          <input id= "green-toggle-switch" type="checkbox">
           <div class="slider round"></div>
         </label>
       </div>
@@ -55,7 +55,7 @@
       <!-- 3 columns to display toggle button -->
       <div class="three columns">
         <label class="switch">
-          <input type="checkbox">
+          <input id= "blue-toggle-switch" type="checkbox">
           <div class="slider round"></div>
         </label>
       </div>
@@ -64,15 +64,40 @@
 
     <!-- Start of row -->
     <div class="row">
-      <div class="six columns">
+      <div class="nine columns">
         <h3>Accelerometer X</h3>
       </div>
       <div class="three columns">
         <h3><span id="acc-x-value">Unknown</span></h3>
       </div>
-      <div class="three columns">
-        <button id="get-acc-x-value">Update</button>
+    </div>
+    <!-- End of row -->
+
+    <!-- Start of row -->
+    <div class="row">
+      <div class="nine columns">
+        <h3>Accelerometer Y</h3>
       </div>
+      <div class="three columns">
+        <h3><span id="acc-y-value">Unknown</span></h3>
+      </div>
+    </div>
+    <!-- End of row -->
+
+    <!-- Start of row -->
+    <div class="row">
+      <div class="nine columns">
+        <h3>Accelerometer Z</h3>
+      </div>
+      <div class="three columns">
+        <h3><span id="acc-z-value">Unknown</span></h3>
+      </div>
+    </div>
+    <!-- End of row -->
+
+    <!-- Start of row -->
+    <div class="row">
+      <button id="update-button">Update</button>
     </div>
     <!-- End of row -->
   </div>
@@ -83,14 +108,49 @@
     $(function() {
       var socket = io();
 
-      $('#get-acc-x-value').click(function () {
-        console.log('GET X value');
-        socket.emit('get-acc-x-value');
+      // Handle update button click action
+      $('#update-button').click(function () {
+        console.log('GET accelerometer value');
+        socket.emit('get-accelerometer-value');
       })
 
-      socket.on('acc-x-value', function (data) {
-        $('#acc-x-value').html(data.value);
-        console.log('acc-x-value', data.value);
+      document.getElementById('red-toggle-switch').onclick = function() {
+        var value = 1;
+        if (this.checked) {
+          value = 0;
+        }
+        socket.emit('toggle-switch', {
+          id: '/led/0/red',
+          value: value
+        });
+      };
+
+      document.getElementById('green-toggle-switch').onclick = function() {
+        var value = 1;
+        if (this.checked) {
+          value = 0;
+        }
+        socket.emit('toggle-switch', {
+          id: '/led/0/green',
+          value: value
+        });
+      };
+
+      document.getElementById('blue-toggle-switch').onclick = function() {
+        var value = 1;
+        if (this.checked) {
+          value = 0;
+        }
+        socket.emit('toggle-switch', {
+          id: '/led/0/blue',
+          value: value
+        });
+      };
+
+      // Listen to server response for accelerometer value
+      socket.on('accelerometer-value', function (data) {
+        console.log('Receieved response');
+        $('#' + data.id).html(data.value);
       });
     });
   </script>
