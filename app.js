@@ -47,16 +47,6 @@ app.get('/', function(request, response) {
   response.render('index');
 });
 
-// Handle unexpected server errors
-app.use(function(err, req, res, next) {
-  console.log(err.stack);
-  res.status(err.status || 500);
-  res.render('error', {
-    message: err.message,
-    error: err
-  });
-});
-
 var sockets = [];
 var server = http.Server(app);
 var io = ioLib(server);
@@ -66,15 +56,45 @@ io.on('connection', function (socket) {
   // Add new client to array of client upon connection
   sockets.push(socket);
 
+  // Get LED status
+  mbedConnectorApi.getResourceValue(frdmK64Endpoint, ledRedResourceURI, function(error, value) {
+    if (error) console.error(error);
+      socket.emit('toggle-value', {
+        id: 'red-toggle-switch',
+        value: value
+      });
+  });
+
+  mbedConnectorApi.getResourceValue(frdmK64Endpoint, ledGreenResourceURI, function(error, value) {
+    if (error) console.error(error);
+      socket.emit('toggle-value', {
+        id: 'green-toggle-switch',
+        value: value
+      });
+  });
+
+  mbedConnectorApi.getResourceValue(frdmK64Endpoint, ledBlueResourceURI, function(error, value) {
+    if (error) console.error(error);
+      socket.emit('toggle-value', {
+        id: 'blue-toggle-switch',
+        value: value
+      });
+  });
+
+  // Toggling the checkbox
   socket.on('toggle-switch', function(data) {
     mbedConnectorApi.putResourceValue(frdmK64Endpoint, data.id, data.value, function(error) {
-      if (error) throw error;
+      if (error) console.error(error);
+      socket.emit('toggle-value', {
+        id: data.id,
+        value: data.value
+      });
     });
   });
 
   socket.on('get-accelerometer-value', function() {
     mbedConnectorApi.getResourceValue(frdmK64Endpoint, accXResourceURI, function(error, value) {
-      if (error) throw error;
+      if (error) console.error(error);
       socket.emit('accelerometer-value', {
         id: 'acc-x-value',
         value: value
@@ -82,7 +102,7 @@ io.on('connection', function (socket) {
     });
 
     mbedConnectorApi.getResourceValue(frdmK64Endpoint, accYResourceURI, function(error, value) {
-      if (error) throw error;
+      if (error) console.error(error);
       socket.emit('accelerometer-value', {
         id: 'acc-y-value',
         value: value
@@ -90,7 +110,7 @@ io.on('connection', function (socket) {
     });
 
     mbedConnectorApi.getResourceValue(frdmK64Endpoint, accZResourceURI, function(error, value) {
-      if (error) throw error;
+      if (error) console.error(error);
       socket.emit('accelerometer-value', {
         id: 'acc-z-value',
         value: value
@@ -108,7 +128,7 @@ mbedConnectorApi.on('notification', function(notification) {
 server.listen(port, function() {
   // Set up the notification channel (pull notifications)
   mbedConnectorApi.startLongPolling(function(error) {
-    if (error) throw error;
+    if (error) console.error(error);
     console.log('App listening on port %s', port);
   })
 });

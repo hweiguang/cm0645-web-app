@@ -152,6 +152,12 @@
         console.log('Receieved response');
         $('#' + data.id).html(data.value);
       });
+
+      // Listen to server response for toggle switch value
+      socket.on('toggle-value', function (data) {
+        console.log('Receieved response');
+        $('#' + data.id).html(data.value);
+      });
     });
   </script>
 </body>
