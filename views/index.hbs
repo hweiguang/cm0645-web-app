@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -62,57 +62,33 @@
     </div>
     <!-- End of row -->
 
-    <!-- Start of row -->
-    <div class="row">
-      <div class="nine columns">
-        <h3>Accelerometer X</h3>
-      </div>
-      <div class="three columns">
-        <h3><span id="acc-x-value">Unknown</span></h3>
-      </div>
-    </div>
-    <!-- End of row -->
+    <canvas id="mycanvas" width="1000" height="300"></canvas>
 
     <!-- Start of row -->
     <div class="row">
-      <div class="nine columns">
-        <h3>Accelerometer Y</h3>
-      </div>
-      <div class="three columns">
-        <h3><span id="acc-y-value">Unknown</span></h3>
-      </div>
-    </div>
-    <!-- End of row -->
-
-    <!-- Start of row -->
-    <div class="row">
-      <div class="nine columns">
-        <h3>Accelerometer Z</h3>
-      </div>
-      <div class="three columns">
-        <h3><span id="acc-z-value">Unknown</span></h3>
-      </div>
-    </div>
-    <!-- End of row -->
-
-    <!-- Start of row -->
-    <div class="row">
-      <button id="update-button">Update</button>
+      <button id="subscribe-button">Start</button>
     </div>
     <!-- End of row -->
   </div>
 
   <script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
   <script type="text/javascript" src="js/socket.io.js"></script>
+  <script type="text/javascript" src="js/smoothie.js"></script>
   <script type="text/javascript">
     $(function() {
       var socket = io();
 
       // Handle update button click action
-      $('#update-button').click(function () {
-        console.log('GET accelerometer value');
-        socket.emit('get-accelerometer-value');
+      $('#subscribe-button').click(function () {
+        console.log('subscribe-to-accelerometer');
+        socket.emit('subscribe-to-accelerometer');
       })
+
+      // Listen to server response for toggle switch value
+      socket.on('toggle-value', function (data) {
+        console.log('Receieved response');
+        $('#' + data.id).html(data.value);
+      });
 
       document.getElementById('red-toggle-switch').onclick = function() {
         var value = 1;
@@ -147,16 +123,30 @@
         });
       };
 
+      // Initialising graph diagram
+      var smoothie = new SmoothieChart();
+      smoothie.streamTo(document.getElementById("mycanvas"));
+
+      // Data
+      var line1 = new TimeSeries();
+      var line2 = new TimeSeries();
+      var line3 = new TimeSeries();
+
+      // Add to SmoothieChart
+      smoothie.addTimeSeries(line1, { strokeStyle:'rgb(255, 0, 0)', fillStyle:'rgba(255, 0, 0, 0.0)', lineWidth:3 });
+      smoothie.addTimeSeries(line2, { strokeStyle:'rgb(0, 255, 0)', fillStyle:'rgba(0, 255, 0, 0.0)', lineWidth:3 });
+      smoothie.addTimeSeries(line3, { strokeStyle:'rgb(0, 0, 255)', fillStyle:'rgba(0, 0, 255, 0.0)', lineWidth:3 });
+
       // Listen to server response for accelerometer value
       socket.on('accelerometer-value', function (data) {
         console.log('Receieved response');
-        $('#' + data.id).html(data.value);
-      });
-
-      // Listen to server response for toggle switch value
-      socket.on('toggle-value', function (data) {
-        console.log('Receieved response');
-        $('#' + data.id).html(data.value);
+        if (data.id == "/acc/0/x") {
+          line1.append(new Date().getTime(), data.value/1000);
+        } else if (data.id == "/acc/0/y") {
+          line2.append(new Date().getTime(), data.value/1000);
+        } else if (data.id == "/acc/0/z") {
+          line3.append(new Date().getTime(), data.value/1000);
+        }
       });
     });
   </script>

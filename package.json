@@ -1,12 +1,12 @@
 {
-  "name": "hello-nodejs",
+  "name": "cm0645-web-app",
   "version": "1.0.0",
-  "description": "",
+  "description": "Internet of Things",
   "main": "app.js",
   "scripts": {
     "start": "node app.js"
   },
-  "author": "",
+  "author": "Wei Guang Heng",
   "license": "ISC",
   "dependencies": {
     "async": "^2.1.4",
@@ -15,6 +15,7 @@
     "hbs": "^4.0.1",
     "http": "0.0.0",
     "mbed-connector-api": "^3.0.0",
+    "smoothie": "^1.27.0",
     "socket.io": "^1.7.2"
   }
 }

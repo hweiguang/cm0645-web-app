@@ -85,43 +85,40 @@ io.on('connection', function (socket) {
   socket.on('toggle-switch', function(data) {
     mbedConnectorApi.putResourceValue(frdmK64Endpoint, data.id, data.value, function(error) {
       if (error) console.error(error);
-      socket.emit('toggle-value', {
-        id: data.id,
-        value: data.value
-      });
+        socket.emit('toggle-value', {
+          id: data.id,
+          value: data.value
+        });
     });
   });
 
-  socket.on('get-accelerometer-value', function() {
-    mbedConnectorApi.getResourceValue(frdmK64Endpoint, accXResourceURI, function(error, value) {
+  socket.on('subscribe-to-accelerometer', function (data) {
+    // Subscribe to accelerometer X value
+    mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, accXResourceURI, function(error) {
       if (error) console.error(error);
-      socket.emit('accelerometer-value', {
-        id: 'acc-x-value',
-        value: value
-      });
     });
 
-    mbedConnectorApi.getResourceValue(frdmK64Endpoint, accYResourceURI, function(error, value) {
+    // Subscribe to accelerometer Y value
+    mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, accYResourceURI, function(error) {
       if (error) console.error(error);
-      socket.emit('accelerometer-value', {
-        id: 'acc-y-value',
-        value: value
-      });
     });
 
-    mbedConnectorApi.getResourceValue(frdmK64Endpoint, accZResourceURI, function(error, value) {
+    // Subscribe to accelerometer Z value
+    mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, accZResourceURI, function(error) {
       if (error) console.error(error);
-      socket.emit('accelerometer-value', {
-        id: 'acc-z-value',
-        value: value
-      });
     });
   });
-});
 
-// Notification callback
-mbedConnectorApi.on('notification', function(notification) {
-  console.log('Notification: ', notification);
+  // Notification callback
+  mbedConnectorApi.on('notification', function(notification) {
+    console.log('Notification: ', notification);
+    var path = notification.path;
+    var payload = notification.payload;
+    socket.emit('accelerometer-value', {
+      id: path,
+      value: payload
+    });
+  });
 });
 
 // Start the app
