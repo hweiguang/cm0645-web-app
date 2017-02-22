@@ -62,13 +62,50 @@
     </div>
     <!-- End of row -->
 
-    <canvas id="mycanvas" width="1000" height="300"></canvas>
+    <!-- Start of row -->
+    <div class="row">
+      <!-- 9 columns to display resource name -->
+      <div class="nine columns">
+        <h3>Light sensor</h3>
+      </div>
+      <!-- 3 columns to display value -->
+      <div class="three columns">
+        <h3 id="light-sensor">-</h3>
+      </div>
+    </div>
+    <!-- End of row -->
 
     <!-- Start of row -->
     <div class="row">
-      <button id="subscribe-button">Start</button>
+      <!-- 9 columns to display resource name -->
+      <div class="nine columns">
+        <h3>Humidity sensor</h3>
+      </div>
+      <!-- 3 columns to display value -->
+      <div class="three columns">
+        <h3 id="humidity-sensor">-</h3>
+      </div>
     </div>
     <!-- End of row -->
+
+    <!-- Start of row -->
+    <div class="row">
+      <!-- 9 columns to display resource name -->
+      <div class="nine columns">
+        <h3>Temperature sensor</h3>
+      </div>
+      <!-- 3 columns to display value -->
+      <div class="three columns">
+        <h3 id="temperature-sensor">-</h3>
+      </div>
+    </div>
+    <!-- End of row -->
+
+    <h3>Accelerometer</h3>
+    <canvas id="accelerometercanvas" width= "1000" height="300"></canvas>
+
+    <h3>Magnetometer</h3>
+    <canvas id="magnetometercanvas" width="1000" height="300"></canvas>
   </div>
 
   <script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
@@ -78,18 +115,10 @@
     $(function() {
       var socket = io();
 
-      // Handle update button click action
-      $('#subscribe-button').click(function () {
-        console.log('subscribe-to-accelerometer');
-        socket.emit('subscribe-to-accelerometer');
-      })
+      // Subscribe to resources value upon connection
+      socket.emit('subscribe');
 
-      // Listen to server response for toggle switch value
-      socket.on('toggle-value', function (data) {
-        console.log('Receieved response');
-        $('#' + data.id).html(data.value);
-      });
-
+      // Handling toggle button events
       document.getElementById('red-toggle-switch').onclick = function() {
         var value = 1;
         if (this.checked) {
@@ -123,29 +152,56 @@
         });
       };
 
-      // Initialising graph diagram
-      var smoothie = new SmoothieChart();
-      smoothie.streamTo(document.getElementById("mycanvas"));
+      // Initialising acclerometer graph diagram
+      var accelerometersmoothie = new SmoothieChart();
+      accelerometersmoothie.streamTo(document.getElementById("accelerometercanvas"));
 
       // Data
-      var line1 = new TimeSeries();
-      var line2 = new TimeSeries();
-      var line3 = new TimeSeries();
+      var accXLine = new TimeSeries();
+      var accYLine = new TimeSeries();
+      var accZLine = new TimeSeries();
 
       // Add to SmoothieChart
-      smoothie.addTimeSeries(line1, { strokeStyle:'rgb(255, 0, 0)', fillStyle:'rgba(255, 0, 0, 0.0)', lineWidth:3 });
-      smoothie.addTimeSeries(line2, { strokeStyle:'rgb(0, 255, 0)', fillStyle:'rgba(0, 255, 0, 0.0)', lineWidth:3 });
-      smoothie.addTimeSeries(line3, { strokeStyle:'rgb(0, 0, 255)', fillStyle:'rgba(0, 0, 255, 0.0)', lineWidth:3 });
+      accelerometersmoothie.addTimeSeries(accXLine, { strokeStyle:'rgb(255, 0, 0)', fillStyle:'rgba(255, 0, 0, 0.0)', lineWidth:3 });
+      accelerometersmoothie.addTimeSeries(accYLine, { strokeStyle:'rgb(0, 255, 0)', fillStyle:'rgba(0, 255, 0, 0.0)', lineWidth:3 });
+      accelerometersmoothie.addTimeSeries(accZLine, { strokeStyle:'rgb(0, 0, 255)', fillStyle:'rgba(0, 0, 255, 0.0)', lineWidth:3 });
 
-      // Listen to server response for accelerometer value
-      socket.on('accelerometer-value', function (data) {
-        console.log('Receieved response');
-        if (data.id == "/acc/0/x") {
-          line1.append(new Date().getTime(), data.value/1000);
+      // Initialising magnetometer graph diagram
+      var magnetometersmoothie = new SmoothieChart();
+      magnetometersmoothie.streamTo(document.getElementById("magnetometercanvas"));
+
+      // Data
+      var magXLine = new TimeSeries();
+      var magYLine = new TimeSeries();
+      var magZLine = new TimeSeries();
+
+      // Add to SmoothieChart
+      magnetometersmoothie.addTimeSeries(magXLine, { strokeStyle:'rgb(255, 0, 0)', fillStyle:'rgba(255, 0, 0, 0.0)', lineWidth:3 });
+      magnetometersmoothie.addTimeSeries(magYLine, { strokeStyle:'rgb(0, 255, 0)', fillStyle:'rgba(0, 255, 0, 0.0)', lineWidth:3 });
+      magnetometersmoothie.addTimeSeries(magZLine, { strokeStyle:'rgb(0, 0, 255)', fillStyle:'rgba(0, 0, 255, 0.0)', lineWidth:3 });
+
+      // Listen to server response
+      socket.on('notifications', function (data) {
+        console.log('Receieved data: ', data);
+        if (data.id == "/acc/0/x") { // Accelerometer
+          accXLine.append(new Date().getTime(), data.value);
         } else if (data.id == "/acc/0/y") {
-          line2.append(new Date().getTime(), data.value/1000);
+          accYLine.append(new Date().getTime(), data.value);
         } else if (data.id == "/acc/0/z") {
-          line3.append(new Date().getTime(), data.value/1000);
+          accZLine.append(new Date().getTime(), data.value);
+        } if (data.id == "/mag/0/x") { // Magnetometer
+          magXLine.append(new Date().getTime(), data.value);
+        } else if (data.id == "/mag/0/y") {
+          magYLine.append(new Date().getTime(), data.value);
+        } else if (data.id == "/mag/0/z") {
+          magZLine.append(new Date().getTime(), data.value);
+        } else if (data.id == "/weather/0/light") { // Weather shield
+          var value = (data.value/65536) * 100;
+          $("#light-sensor").html(value.toFixed(2) + "%");
+        } else if (data.id == '/weather/0/temperature') {
+          $("#temperature-sensor").html(data.value + "°C");
+        } else if (data.id == '/weather/0/humidity') {
+          $("#humidity-sensor").html(data.value + "%");
         }
       });
     });

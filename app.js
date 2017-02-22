@@ -2,7 +2,6 @@
 var MbedConnectorApi = require('mbed-connector-api');
 var express = require('express');
 var path = require('path');
-var async = require('async');
 var ioLib = require('socket.io');
 var http = require('http');
 
@@ -23,6 +22,14 @@ var ledBlueResourceURI = '/led/0/blue';
 var accXResourceURI = '/acc/0/x';
 var accYResourceURI = '/acc/0/y';
 var accZResourceURI = '/acc/0/z';
+
+var magXResourceURI = '/mag/0/x';
+var magYResourceURI = '/mag/0/y';
+var magZResourceURI = '/mag/0/z';
+
+var temperatureResourceURI = '/weather/0/temperature';
+var humidityResourceURI = '/weather/0/humidity';
+var lightResourceURI = '/weather/0/light';
 
 // Instantiate an mbed Device Connector object
 var mbedConnectorApi = new MbedConnectorApi({
@@ -85,14 +92,10 @@ io.on('connection', function (socket) {
   socket.on('toggle-switch', function(data) {
     mbedConnectorApi.putResourceValue(frdmK64Endpoint, data.id, data.value, function(error) {
       if (error) console.error(error);
-        socket.emit('toggle-value', {
-          id: data.id,
-          value: data.value
-        });
     });
   });
 
-  socket.on('subscribe-to-accelerometer', function (data) {
+  socket.on('subscribe', function() {
     // Subscribe to accelerometer X value
     mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, accXResourceURI, function(error) {
       if (error) console.error(error);
@@ -107,18 +110,57 @@ io.on('connection', function (socket) {
     mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, accZResourceURI, function(error) {
       if (error) console.error(error);
     });
+
+    // Subscribe to magnetometer X value
+    mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, magXResourceURI, function(error) {
+      if (error) console.error(error);
+    });
+
+    // Subscribe to magnetometer Y value
+    mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, magYResourceURI, function(error) {
+      if (error) console.error(error);
+    });
+
+    // Subscribe to magnetometer Z value
+    mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, magZResourceURI, function(error) {
+      if (error) console.error(error);
+    });
+
+    // Subscribe to light sensor value
+    mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, lightResourceURI, function(error) {
+      if (error) console.error(error);
+    });
+
+    // Subscribe to humidity sensor value
+    mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, humidityResourceURI, function(error) {
+      if (error) console.error(error);
+    });
+
+    // Subscribe to temperature sensor value
+    mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, temperatureResourceURI, function(error) {
+      if (error) console.error(error);
+    });
   });
 
-  // Notification callback
-  mbedConnectorApi.on('notification', function(notification) {
-    console.log('Notification: ', notification);
-    var path = notification.path;
-    var payload = notification.payload;
-    socket.emit('accelerometer-value', {
+  socket.on('disconnect', function() {
+    // Remove this socket from the array when a user closes their browser
+    var index = sockets.indexOf(socket);
+    if (index >= 0) {
+      sockets.splice(index, 1);
+    }
+  })
+});
+
+// Notification callback
+mbedConnectorApi.on('notification', function(notification) {
+  var path = notification.path;
+  var payload = notification.payload;
+  sockets.forEach(function(socket) {
+    socket.emit('notifications', {
       id: path,
       value: payload
     });
-  });
+  })
 });
 
 // Start the app
