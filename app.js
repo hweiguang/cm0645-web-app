@@ -54,120 +54,92 @@ app.get('/', function(request, response) {
   response.render('index');
 });
 
-var sockets = [];
 var server = http.Server(app);
 var io = ioLib(server);
 
 // Setup sockets for updating web UI
 io.on('connection', function (socket) {
-  // Add new client to array of client upon connection
-  sockets.push(socket);
-
-  // Get LED status
-  mbedConnectorApi.getResourceValue(frdmK64Endpoint, ledRedResourceURI, function(error, value) {
-    if (error) console.error(error);
-      socket.emit('toggle-value', {
-        id: 'red-toggle-switch',
-        value: value
-      });
-  });
-
-  mbedConnectorApi.getResourceValue(frdmK64Endpoint, ledGreenResourceURI, function(error, value) {
-    if (error) console.error(error);
-      socket.emit('toggle-value', {
-        id: 'green-toggle-switch',
-        value: value
-      });
-  });
-
-  mbedConnectorApi.getResourceValue(frdmK64Endpoint, ledBlueResourceURI, function(error, value) {
-    if (error) console.error(error);
-      socket.emit('toggle-value', {
-        id: 'blue-toggle-switch',
-        value: value
-      });
-  });
-
   // Toggling the checkbox
   socket.on('toggle-switch', function(data) {
+    console.log('Toogle switch: ', data);
     mbedConnectorApi.putResourceValue(frdmK64Endpoint, data.id, data.value, function(error) {
       if (error) console.error(error);
     });
   });
-
-  socket.on('subscribe', function() {
-    // Subscribe to accelerometer X value
-    mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, accXResourceURI, function(error) {
-      if (error) console.error(error);
-    });
-
-    // Subscribe to accelerometer Y value
-    mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, accYResourceURI, function(error) {
-      if (error) console.error(error);
-    });
-
-    // Subscribe to accelerometer Z value
-    mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, accZResourceURI, function(error) {
-      if (error) console.error(error);
-    });
-
-    // Subscribe to magnetometer X value
-    mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, magXResourceURI, function(error) {
-      if (error) console.error(error);
-    });
-
-    // Subscribe to magnetometer Y value
-    mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, magYResourceURI, function(error) {
-      if (error) console.error(error);
-    });
-
-    // Subscribe to magnetometer Z value
-    mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, magZResourceURI, function(error) {
-      if (error) console.error(error);
-    });
-
-    // Subscribe to light sensor value
-    mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, lightResourceURI, function(error) {
-      if (error) console.error(error);
-    });
-
-    // Subscribe to humidity sensor value
-    mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, humidityResourceURI, function(error) {
-      if (error) console.error(error);
-    });
-
-    // Subscribe to temperature sensor value
-    mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, temperatureResourceURI, function(error) {
-      if (error) console.error(error);
-    });
-  });
-
-  socket.on('disconnect', function() {
-    // Remove this socket from the array when a user closes their browser
-    var index = sockets.indexOf(socket);
-    if (index >= 0) {
-      sockets.splice(index, 1);
-    }
-  })
 });
 
 // Notification callback
 mbedConnectorApi.on('notification', function(notification) {
   var path = notification.path;
   var payload = notification.payload;
-  sockets.forEach(function(socket) {
-    socket.emit('notifications', {
-      id: path,
-      value: payload
-    });
-  })
+
+  io.emit('notifications', {
+    id: path,
+    value: payload
+  });
 });
 
 // Start the app
 server.listen(port, function() {
-  // Set up the notification channel (pull notifications)
+  // Set up the notification channel, app will poll for notications from mbed
   mbedConnectorApi.startLongPolling(function(error) {
     if (error) console.error(error);
-    console.log('App listening on port %s', port);
+
+    // Check if device is connected to cloud connector
+    mbedConnectorApi.getEndpoints(function(error, devices) {
+      if (error) throw error;
+
+      console.log('Found', devices.length, 'devices', devices);
+
+      // Subscribe to notifications
+      devices.forEach(function(device) {
+        // Subscribe to accelerometer X value
+        mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, accXResourceURI, function(error) {
+          if (error) console.error(error);
+        });
+
+        // Subscribe to accelerometer Y value
+        mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, accYResourceURI, function(error) {
+          if (error) console.error(error);
+        });
+
+        // Subscribe to accelerometer Z value
+        mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, accZResourceURI, function(error) {
+          if (error) console.error(error);
+        });
+
+        // Subscribe to magnetometer X value
+        mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, magXResourceURI, function(error) {
+          if (error) console.error(error);
+        });
+
+        // Subscribe to magnetometer Y value
+        mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, magYResourceURI, function(error) {
+          if (error) console.error(error);
+        });
+
+        // Subscribe to magnetometer Z value
+        mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, magZResourceURI, function(error) {
+          if (error) console.error(error);
+        });
+
+        // Subscribe to light sensor value
+        mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, lightResourceURI, function(error) {
+          if (error) console.error(error);
+        });
+
+        // Subscribe to humidity sensor value
+        mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, humidityResourceURI, function(error) {
+          if (error) console.error(error);
+        });
+
+        // Subscribe to temperature sensor value
+        mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, temperatureResourceURI, function(error) {
+          if (error) console.error(error);
+        });
+      });
+    }, { parameters: { type: 'mbed-program' } });
+
+    console.log('App is now listening on port %s', port);
   })
 });

@@ -114,10 +114,7 @@
   <script type="text/javascript">
     $(function() {
       var socket = io();
-
-      // Subscribe to resources value upon connection
-      socket.emit('subscribe');
-
+      
       // Handling toggle button events
       document.getElementById('red-toggle-switch').onclick = function() {
         var value = 1;
