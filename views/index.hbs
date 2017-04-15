@@ -109,12 +109,12 @@
   </div>
 
   <script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
-  <script type="text/javascript" src="js/socket.io.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
   <script type="text/javascript" src="js/smoothie.js"></script>
   <script type="text/javascript">
     $(function() {
       var socket = io();
-      
+
       // Handling toggle button events
       document.getElementById('red-toggle-switch').onclick = function() {
         var value = 1;
