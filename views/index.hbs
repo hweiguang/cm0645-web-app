@@ -186,13 +186,14 @@
           accYLine.append(new Date().getTime(), data.value);
         } else if (data.id == "/acc/0/z") {
           accZLine.append(new Date().getTime(), data.value);
-        } if (data.id == "/mag/0/x") { // Magnetometer
+        } else if (data.id == "/mag/0/x") { // Magnetometer
           magXLine.append(new Date().getTime(), data.value);
         } else if (data.id == "/mag/0/y") {
           magYLine.append(new Date().getTime(), data.value);
         } else if (data.id == "/mag/0/z") {
           magZLine.append(new Date().getTime(), data.value);
         } else if (data.id == "/weather/0/light") { // Weather shield
+          // Convert from 32 bit integer to percentage
           var value = (data.value/65536) * 100;
           $("#light-sensor").html(value.toFixed(2) + "%");
         } else if (data.id == '/weather/0/temperature') {
