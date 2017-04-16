@@ -92,7 +92,7 @@ server.listen(port, function() {
       console.log('Found', devices.length, 'devices', devices);
 
       // Subscribe to notifications
-      devices.forEach(function(device) {
+      if (devices.length > 0) {
         // Subscribe to accelerometer X value
         mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, accXResourceURI, function(error) {
           if (error) console.error(error);
@@ -137,7 +137,7 @@ server.listen(port, function() {
         mbedConnectorApi.putResourceSubscription(frdmK64Endpoint, temperatureResourceURI, function(error) {
           if (error) console.error(error);
         });
-      });
+      }
     }, { parameters: { type: 'mbed-program' } });
 
     console.log('App is now listening on port %s', port);
